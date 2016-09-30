@@ -76,11 +76,25 @@ class ViewController: UIViewController, SpeakerDelegate, UIPickerViewDelegate, U
         super.viewDidLoad()
         speaker.delegate = self
         
-        //init language names
+        // init language names
         let voices = self.speaker.voices
         for voice in voices {
             languageNames.append(voice.name)
         }
+    
+        // add 'Done' toolbar on keyboard
+        let toolBar = UIToolbar(frame: CGRect(x: 0, y: 0, width: self.view.frame.size.width, height: 50))
+        toolBar.barStyle = UIBarStyle.default
+        toolBar.items = [
+            UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: nil, action: nil),
+            UIBarButtonItem(title: "Done", style: UIBarButtonItemStyle.plain, target: self, action: #selector(ViewController.doneClicked))]
+        toolBar.sizeToFit()
+        
+        textView.inputAccessoryView = toolBar
+    }
+    
+    func doneClicked() {
+        textView.resignFirstResponder()
     }
     
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
@@ -96,7 +110,7 @@ class ViewController: UIViewController, SpeakerDelegate, UIPickerViewDelegate, U
     func numberOfComponents(in pickerView: UIPickerView) -> Int {
         return 1
     }
-    
+
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
