@@ -17,6 +17,8 @@ public class Speaker: NSObject, AVSpeechSynthesizerDelegate {
     var voices = AVSpeechSynthesisVoice.speechVoices()
     var delegate: SpeakerDelegate?
     var rate: Float = AVSpeechUtteranceDefaultSpeechRate
+    var isSpeaking = false
+    var isPaused = false
     
     let synthesizer = AVSpeechSynthesizer()
 
@@ -26,18 +28,24 @@ public class Speaker: NSObject, AVSpeechSynthesizerDelegate {
     }
 
     public func stopSpeaking() {
-        self.synthesizer.stopSpeaking(at: .word)
+        self.synthesizer.stopSpeaking(at: .immediate)
+        isPaused = false
+        isSpeaking = false
     }
 
     public func pauseSpeaking() {
         self.synthesizer.pauseSpeaking(at: .immediate)
+        isPaused = true
     }
 
     public func continueSpeaking() {
         self.synthesizer.continueSpeaking()
+        isPaused = false
     }
     
     public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
+        isSpeaking = false
+        isPaused = false
         delegate?.speaker(speaker: self, didFinishSpeechString: utterance.speechString)
     }
 
@@ -46,6 +54,7 @@ public class Speaker: NSObject, AVSpeechSynthesizerDelegate {
         utterance.volume = self.mute ? 0.0 : self.volume
         utterance.voice = self.voice
         utterance.rate = self.rate
+        isSpeaking = true
         self.synthesizer.speak(utterance)
     }
     

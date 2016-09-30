@@ -12,44 +12,46 @@ class ViewController: UIViewController, SpeakerDelegate, UIPickerViewDelegate, U
     
     @IBOutlet weak var textView: UITextView! = nil
     @IBOutlet weak var playButton: UIBarButtonItem! = nil
-    @IBOutlet weak var rateLabel: UILabel! = nil
 
     let speaker = Speaker.defaultSpeaker
     var languageNames: [String] = []
-    var isSpeaking = false
-    var isPaused = false
     
     @IBAction func playClicked(_ sender: AnyObject) {
-        if isSpeaking {
-            if isPaused {
+        if speaker.isSpeaking {
+            if speaker.isPaused {
                 speaker.continueSpeaking()
-                isPaused = false
                 playButton.image = UIImage(named: "Pause.png")
             } else {
                 speaker.pauseSpeaking()
-                isPaused = true
                 playButton.image = UIImage(named: "Play.png")
             }
         } else if let text = self.textView.text {
             speaker.speakText(text: text)
-            isSpeaking = true
             playButton.image = UIImage(named: "Pause.png")
         }
     }
     
     @IBAction func stopClicked(_ sender: AnyObject) {
         speaker.stopSpeaking()
-        isPaused = false
-        isSpeaking = false
         playButton.image = UIImage(named: "Play.png")
     }
     
     func speaker(speaker: Speaker, didFinishSpeechString: String) {
-        isSpeaking = false
-        isPaused = false
         playButton.image = UIImage(named: "Play.png")
     }
     
+    @IBAction func rateSegmentChanged(_ sender: UISegmentedControl) {
+        switch sender.selectedSegmentIndex {
+        case 0:
+            speaker.rate = 0.3
+        case 1:
+            speaker.rate = 0.5
+        case 2:
+            speaker.rate = 0.7
+        default: break
+        }
+    }
+
     @IBAction func changeVoiceClicked(_ sender: AnyObject) {
         // create action sheet & picker view dynamically
         let alertController = UIAlertController(title: "Select Launguage", message: "\n\n\n\n\n\n\n\n\n\n", preferredStyle: UIAlertControllerStyle.actionSheet);
@@ -68,12 +70,6 @@ class ViewController: UIViewController, SpeakerDelegate, UIPickerViewDelegate, U
         }
         alertController.addAction(action)
         present(alertController, animated: true, completion: nil)
-    }
-    
-    @IBAction func rateChanged(_ sender: UISlider) {
-        let value = roundf(100 * sender.value) / 100
-        speaker.rate = value
-        rateLabel.text = String(value)
     }
     
     override func viewDidLoad() {
