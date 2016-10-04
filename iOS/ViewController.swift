@@ -10,6 +10,8 @@ import UIKit
 
 class ViewController: UIViewController, SpeakerDelegate, UIPickerViewDelegate, UIPickerViewDataSource {
     
+
+    @IBOutlet var panGesture: UIPanGestureRecognizer! = nil
     @IBOutlet weak var textView: UITextView! = nil
     @IBOutlet weak var playButton: UIBarButtonItem! = nil
 
@@ -29,6 +31,11 @@ class ViewController: UIViewController, SpeakerDelegate, UIPickerViewDelegate, U
             speaker.speakText(text: text)
             playButton.image = UIImage(named: "Pause.png")
         }
+    }
+    
+
+    @IBAction func DismissKeyboard(sender: UIPanGestureRecognizer) {
+        self.view.endEditing(true)
     }
     
     @IBAction func stopClicked(_ sender: AnyObject) {
@@ -74,9 +81,9 @@ class ViewController: UIViewController, SpeakerDelegate, UIPickerViewDelegate, U
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.view.addGestureRecognizer(panGesture)
         speaker.delegate = self
-        
-        // init language names
+        //init language names
         let voices = self.speaker.voices
         for voice in voices {
             languageNames.append(voice.name)

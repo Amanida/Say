@@ -50,11 +50,9 @@ class MainWindow: NSWindow {
             self.exportToolbarItem.image = NSImage(data: imageData)
         }
         if let imageData = syncronizedData("icon_open", URL: URL(string: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Inkscape_icons_document_import.svg/500px-Inkscape_icons_document_import.svg.png?uselang=ko")!) {
-            //assert(self.openToolbarItem != nil)
             self.openToolbarItem.image = NSImage(data: imageData)
         }
-        if let imageData = syncronizedData("icon_stop", URL: URL(string: "https://commons.wikimedia.org/wiki/File%3AStop_icon_status.png")!) {
-            //assert(self.openToolbarItem != nil)
+        if let imageData = syncronizedData("icon_stop_", URL: URL(string: "https://upload.wikimedia.org/wikipedia/commons/b/bf/Stop_icon_status.png")!) {
             self.stopToolbarItem.image = NSImage(data: imageData)
         }
     }
@@ -152,17 +150,13 @@ class ViewController: NSViewController {
     }
     
     @IBAction func say(_ sender: NSToolbarItem) {
-        
         if !say.isplaying() {
-            
-            if self.pause{
-            
+            if self.pause {
+                self.pause = false
                 say.continueSpeaking()
             } else {
-                
                 say = SayAPI(text: self.textForSpeech, voice: self.selectedVoice)
                 say.play(false)
-                
             }
         }
     }
@@ -184,16 +178,53 @@ class ViewController: NSViewController {
             return nil
         }
     }
+    
+
     @IBAction func pause(_ sender: NSControl) {
-        
         self.pause = true
         say.pause()
     }
+    
     @IBAction func stop(_ sender: NSControl) {
-        
         self.pause = false
         say.stop()
+
+    @IBAction func say(_ sender: NSControl) {
+        let originalText = self.textForSpeech
+    
+
+        print (originalText)
+        let url: String = "https://openapi.naver.com/v1/language/translate"
         
+        let request = NSMutableURLRequest(url : NSURL(string : url)! as URL)
+        request.httpMethod = "POST"
+        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        request.setValue("2qo6qri2A3MxVUASRYeI", forHTTPHeaderField: "X-Naver-Client-Id")
+        request.setValue("zPVJXM_usW", forHTTPHeaderField: "X-Naver-Client-Secret")
+ 
+        
+        request.httpBody = "source=en&target=ko&text=\(originalText)".data(using: .utf8)
+        
+        
+        let data = try! NSURLConnection.sendSynchronousRequest(request as URLRequest, returning: nil)
+        let JSONObject = try! JSONSerialization.jsonObject(with: data, options: []) as! [String: Any]
+        let string = String(data: data, encoding: .utf8)
+        print(string)
+        
+        let JSONMessage = JSONObject["message"] as! [String: Any]
+        let JSONResult = JSONMessage["result"] as! [String: Any]
+        print(JSONResult)
+        
+        let text = JSONResult["translatedText"] as! String
+        print(text)
+        
+       textView.string = text
+        let resultText = text
+
+        sender.isEnabled = false
+        SayAPI(text: resultText, voice: self.selectedVoice).play(false)
+        
+        sender.isEnabled = true
     }
     
     @IBAction func saveDocumentAs(_ sender: NSControl) {
@@ -227,7 +258,14 @@ class ViewController: NSViewController {
     }
     
     func doAlarm() {
-        SayAPI(text: self.textForSpeech, voice: self.selectedVoice).play(false)
+        if !say.isplaying() {
+            if self.pause {
+                say.continueSpeaking()
+            } else {
+                say = SayAPI(text: self.textForSpeech, voice: self.selectedVoice)
+                say.play(false)
+            }
+        }
         alarmButton.state = NSOffState
     }
 
